@@ -1,0 +1,29 @@
+# Metadata for the Jet Elytra mod.
+# The placeholders in this file are expanded by the processResources task in build.gradle.
+# Keep comments free of placeholder syntax - this file is processed as a Groovy template.
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
+
+# Forge is required; the version range is expanded from gradle.properties.
+[[dependencies."${mod_id}"]]
+modId = "forge"
+mandatory = true
+versionRange = "${forge_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+# Minecraft itself, bounded to the 1.20.x line by the minecraft version range property.
+[[dependencies."${mod_id}"]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

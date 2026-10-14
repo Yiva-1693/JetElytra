@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.yiva.jet_elytra.jet_elytra.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "jet_elytra.refmap.json",
+  "mixins": [
+    "ElytraThrustMixin"
+  ],
+  "client": [
+    "GuiFuelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
