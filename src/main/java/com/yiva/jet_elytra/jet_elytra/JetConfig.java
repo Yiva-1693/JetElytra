@@ -39,22 +39,20 @@ public final class JetConfig {
             .defineInRange("fuelConsumptionPerSecond", 25.0D, 0.0D, 10000.0D);
 
     public static final ForgeConfigSpec.DoubleValue FUEL_REFILL_IN_FLIGHT_PER_SECOND = BUILDER
-            .comment("停止推进后，仍在滑翔状态下每秒恢复的燃料。",
-                    "刻意低于消耗速度，这样一直按住推进键就一定会亏燃料，不会自给自足。",
-                    "如果调到高于消耗速度，就能无限续航。")
-            .defineInRange("fuelRefillInFlightPerSecond", 12.0D, 0.0D, 10000.0D);
+            .comment("停止推进后，仍在滑翔状态下每秒恢复的燃料。")
+            .defineInRange("fuelRefillInFlightPerSecond", 10.0D, 0.0D, 10000.0D);
 
     public static final ForgeConfigSpec.DoubleValue FUEL_REFILL_OUT_OF_FLIGHT_PER_SECOND = BUILDER
             .comment("已经不在滑翔状态（落地、走路、骑乘）时每秒恢复的燃料，是两档里的快档。",
                     "它负责把燃料补回来，让下一次起飞有油可用。",
                     "设为 0 则只能靠烟花火箭补充燃料。")
-            .defineInRange("fuelRefillOutOfFlightPerSecond", 30.0D, 0.0D, 10000.0D);
+            .defineInRange("fuelRefillOutOfFlightPerSecond", 20.0D, 0.0D, 10000.0D);
 
     public static final ForgeConfigSpec.IntValue REFILL_DELAY_TICKS = BUILDER
             .comment("推进停止后，等待多少 tick 才开始恢复燃料，滑翔档和落地档共用这个延迟。",
                     "20 tick = 1 秒。这个延迟是为了防止连点推进键时燃料被偷偷回满；",
                     "设为 0 则立即开始恢复。")
-            .defineInRange("refillDelayTicks", 20, 0, 72000);
+            .defineInRange("refillDelayTicks", 30, 0, 72000);
 
     public static final ForgeConfigSpec.DoubleValue MIN_FUEL_TO_START = BUILDER
             .comment("进入推进模式所需的最低燃料。低于此值时按前进键没有反应，必须先落地补燃料。",
@@ -76,9 +74,9 @@ public final class JetConfig {
 
     public static final ForgeConfigSpec.IntValue ACCELERATION_TICKS = BUILDER
             .comment("从当前速度加速到终端速度所需的 tick 数；松开按键后的减速也用同一速率。",
-                    "20 tick = 1 秒，所以 60 就是 3 秒到满速。",
+                    "20 tick = 1 秒，所以 45 就是 2.25 秒到满速。",
                     "数值越小越跟手，越大加速越平缓。")
-            .defineInRange("accelerationTicks", 60, 1, 72000);
+            .defineInRange("accelerationTicks", 45, 1, 72000);
 
     public static final ForgeConfigSpec.IntValue PARTICLE_COUNT = BUILDER
             .comment("推进时每 tick 在玩家身后生成的烟花尾迹粒子数量。纯视觉效果，设为 0 关闭尾迹。")
@@ -86,7 +84,7 @@ public final class JetConfig {
 
     public static final ForgeConfigSpec.DoubleValue PARTICLE_SPREAD = BUILDER
             .comment("每个尾迹粒子的随机偏移量，单位是格。数值越大尾迹越散，越小越像一条细线。")
-            .defineInRange("particleSpread", 0.3D, 0.0D, 8.0D);
+            .defineInRange("particleSpread", 0.2D, 0.0D, 8.0D);
 
     public static final ForgeConfigSpec.IntValue SYNC_INTERVAL_TICKS = BUILDER
             .comment("服务端每隔多少 tick 把燃料值同步给对应客户端。5 tick = 每秒 4 次。",
@@ -95,7 +93,7 @@ public final class JetConfig {
             .defineInRange("syncIntervalTicks", 5, 1, 200);
 
     public static final ForgeConfigSpec.IntValue FIREWORK_FUEL_FLIGHT_1 = BUILDER
-            .comment("飞行时间 1 的烟花火箭（最短的那种）能补充的燃料量。")
+            .comment("飞行时间 1 的烟花火箭能补充的燃料量。")
             .defineInRange("fireworkFuelFlight1", 50, 0, 100000);
 
     public static final ForgeConfigSpec.IntValue FIREWORK_FUEL_FLIGHT_2 = BUILDER
@@ -103,7 +101,7 @@ public final class JetConfig {
             .defineInRange("fireworkFuelFlight2", 100, 0, 100000);
 
     public static final ForgeConfigSpec.IntValue FIREWORK_FUEL_FLIGHT_3 = BUILDER
-            .comment("飞行时间 3 的烟花火箭（最长的那种）能补充的燃料量。",
+            .comment("飞行时间 3 的烟花火箭能补充的燃料量。",
                     "其它飞行时间的火箭一律按飞行时间 1 计算。")
             .defineInRange("fireworkFuelFlight3", 150, 0, 100000);
 
@@ -124,15 +122,15 @@ public final class JetConfig {
 
     public static double fuelCapacity = 200.0D;
     public static double fuelConsumptionPerSecond = 25.0D;
-    public static double fuelRefillInFlightPerSecond = 12.0D;
-    public static double fuelRefillOutOfFlightPerSecond = 30.0D;
-    public static int refillDelayTicks = 20;
+    public static double fuelRefillInFlightPerSecond = 10.0D;
+    public static double fuelRefillOutOfFlightPerSecond = 20.0D;
+    public static int refillDelayTicks = 30;
     public static double minFuelToStart = 20.0D;
     public static double autoRefuelThreshold = 50.0D;
     public static double maxSpeedBlocksPerSecond = 33.5D;
-    public static int accelerationTicks = 60;
+    public static int accelerationTicks = 45;
     public static int particleCount = 2;
-    public static double particleSpread = 0.3D;
+    public static double particleSpread = 0.2D;
     public static int syncIntervalTicks = 5;
     public static int fireworkFuelFlight1 = 50;
     public static int fireworkFuelFlight2 = 100;
