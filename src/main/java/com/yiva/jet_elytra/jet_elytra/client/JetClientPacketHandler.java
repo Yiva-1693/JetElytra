@@ -23,6 +23,9 @@ import org.slf4j.Logger;
  *       "hold W, then take off" would need a key release and re-press;</li>
  *   <li>the world being joined.</li>
  * </ul>
+ *
+ * <p>Sneak is deliberately not polled here: it is a one-shot press, handled by
+ * {@link JetFlightCancelHandler} from the key event.</p>
  */
 @Mod.EventBusSubscriber(modid = Jet_Elytra.MODID, value = Dist.CLIENT)
 public final class JetClientPacketHandler {
