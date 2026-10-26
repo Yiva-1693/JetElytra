@@ -151,4 +151,4 @@ build/libs/Jet Elytra-1.3.1.jar
 
 通过 [GitHub Issues](https://github.com/Yiva-1693/JetElytra/issues) 反馈问题时，请提供模组版本、Minecraft / Forge 版本、单人或多人环境、复现步骤，以及相关游戏日志。
 
-作者：**Yiva**。当前模组元数据声明的许可为 **All Rights Reserved（保留所有权利）**。
+作者：**Yiva**。本项目采用 [MIT 许可证](LICENSE)。
