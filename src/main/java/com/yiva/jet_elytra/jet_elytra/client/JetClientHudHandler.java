@@ -1,6 +1,5 @@
 package com.yiva.jet_elytra.jet_elytra.client;
 
-import com.yiva.jet_elytra.jet_elytra.JetConstants;
 import com.yiva.jet_elytra.jet_elytra.Jet_Elytra;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,10 +18,6 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = Jet_Elytra.MODID, value = Dist.CLIENT)
 public final class JetClientHudHandler {
 
-    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
-
-    private static int ticks;
-
     private JetClientHudHandler() {
     }
 
@@ -34,16 +29,5 @@ public final class JetClientHudHandler {
 
         final Minecraft minecraft = Minecraft.getInstance();
         FuelHudRenderer.tickVisibility(minecraft.player);
-
-        // Throttled sanity trace: the client's own position, so the server's thrust can be compared
-        // against what the player actually experiences.
-        if (minecraft.player != null && ++ticks % 20 == 0) {
-            LOGGER.info("[JetElytra] client: gliding={} fuel(bar)={} pos={} velocity={}",
-                    minecraft.player.isFallFlying(),
-                    String.format("%.1f", JetConstants.getClientFuel()),
-                    String.format("%.2f/%.2f/%.2f", minecraft.player.getX(), minecraft.player.getY(),
-                            minecraft.player.getZ()),
-                    String.format("%.3f", minecraft.player.getDeltaMovement().length()));
-        }
     }
 }

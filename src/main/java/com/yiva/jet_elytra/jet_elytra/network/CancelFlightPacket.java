@@ -1,10 +1,9 @@
 package com.yiva.jet_elytra.jet_elytra.network;
 
-import com.mojang.logging.LogUtils;
+import com.yiva.jet_elytra.jet_elytra.capability.PlayerFuel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
-import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
@@ -16,14 +15,11 @@ import java.util.function.Supplier;
  * glide starts normally - the press belonged to whatever the player was doing before the glide, not to
  * the glide. Only a press that happens while already flying cancels.</p>
  *
- * <p>Empty on purpose. The client reports the input, the server decides, and the server checks
- * {@code isFallFlying()} itself rather than trusting a flag: a stale or replayed packet then cannot
- * end a glide that started after it was sent. That check is also what keeps this from being an
- * authority hole - the client cannot ask to stop a glide it is not in.</p>
+ * <p>The client stops its local glide immediately and reports the input. The server clears its own
+ * glide and thrust state; the normal entity-data sync confirms the result to the client and other
+ * players. Only the sending player's state is affected.</p>
  */
 public record CancelFlightPacket() {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void encode(final CancelFlightPacket packet, final FriendlyByteBuf buffer) {
         // No payload: the only information is the fact that the packet arrived.
@@ -37,14 +33,12 @@ public record CancelFlightPacket() {
         final NetworkEvent.Context context = contextSupplier.get();
         final ServerPlayer player = context.getSender();
         if (player != null) {
-            if (player.isFallFlying()) {
-                player.stopFallFlying();
-                LOGGER.info("[JetElytra] server: {} cancelled the glide (sneak pressed in flight)",
-                        player.getGameProfile().getName());
-            } else {
-                LOGGER.info("[JetElytra] server: {} asked to cancel but is not gliding; ignored",
-                        player.getGameProfile().getName());
-            }
+            player.stopFallFlying();
+            final PlayerFuel fuel = PlayerFuel.of(player);
+            fuel.setLifting(false);
+            fuel.setBoostSpeed(0.0D);
+            // Reassert zero on the next sync even if the previous thrust fingerprint was already zero.
+            fuel.setLastSyncedBoostSpeed(Double.NaN);
         }
         context.setPacketHandled(true);
     }

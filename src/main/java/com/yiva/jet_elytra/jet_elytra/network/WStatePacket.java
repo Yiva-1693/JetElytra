@@ -1,11 +1,9 @@
 package com.yiva.jet_elytra.jet_elytra.network;
 
 import com.yiva.jet_elytra.jet_elytra.capability.PlayerFuel;
-import com.mojang.logging.LogUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
-import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
@@ -16,8 +14,6 @@ import java.util.function.Supplier;
  * press instead of twenty per second.</p>
  */
 public record WStatePacket(boolean pressed) {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void encode(final WStatePacket packet, final FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.pressed());
@@ -33,8 +29,6 @@ public record WStatePacket(boolean pressed) {
         final ServerPlayer player = context.getSender();
         if (player != null) {
             PlayerFuel.of(player).setLifting(packet.pressed());
-            LOGGER.info("[JetElytra] server: received C2S_WState pressed={} from {} (gliding={})",
-                    packet.pressed(), player.getGameProfile().getName(), player.isFallFlying());
         }
         context.setPacketHandled(true);
     }

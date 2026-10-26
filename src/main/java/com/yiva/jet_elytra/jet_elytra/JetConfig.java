@@ -1,6 +1,5 @@
 package com.yiva.jet_elytra.jet_elytra;
 
-import com.yiva.jet_elytra.jet_elytra.gameplay.JetDiagnostics;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -105,12 +104,6 @@ public final class JetConfig {
                     "其它飞行时间的火箭一律按飞行时间 1 计算。")
             .defineInRange("fireworkFuelFlight3", 150, 0, 100000);
 
-    public static final ForgeConfigSpec.BooleanValue DEBUG_LOG = BUILDER
-            .comment("是否输出 logs/jet_elytra-diagnostic.log：每 tick 一行，",
-                    "覆盖 输入 -> 网络包 -> 推力判定 -> 速度 的完整链路。",
-                    "这是排查问题用的，正常游玩请保持关闭，否则日志会迅速变大。")
-            .define("debugLog", false);
-
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // ---- 运行时实际读取的值 ----
@@ -135,7 +128,6 @@ public final class JetConfig {
     public static int fireworkFuelFlight1 = 50;
     public static int fireworkFuelFlight2 = 100;
     public static int fireworkFuelFlight3 = 150;
-    public static boolean debugLog = false;
 
     private JetConfig() {
     }
@@ -205,8 +197,6 @@ public final class JetConfig {
             fireworkFuelFlight1 = FIREWORK_FUEL_FLIGHT_1.get();
             fireworkFuelFlight2 = FIREWORK_FUEL_FLIGHT_2.get();
             fireworkFuelFlight3 = FIREWORK_FUEL_FLIGHT_3.get();
-            debugLog = DEBUG_LOG.get();
-            JetDiagnostics.enabled = debugLog;
         } catch (final IllegalStateException notLoadedYet) {
             // Config not available on this side yet - keep the defaults.
         }

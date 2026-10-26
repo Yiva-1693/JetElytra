@@ -46,14 +46,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 public abstract class ElytraThrustMixin {
 
-    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
-
-    /** Throttle for the debug line printed while the velocity overwrite is being applied. */
-    private static final int LOG_INTERVAL = 20;
-
-    /** Counts mixin applications across both threads, only used for the throttled debug line. */
-    private static int jetelytra$applied;
-
     /**
      * Replaces the velocity the elytra glide is about to move with, while the jet is lifting.
      *
@@ -85,17 +77,6 @@ public abstract class ElytraThrustMixin {
         final Vec3 look = self.getViewVector(1.0F);
         final double speed = Math.max(jetSpeed, self.getDeltaMovement().length());
         self.setDeltaMovement(look.x * speed, look.y * speed, look.z * speed);
-
-        if (++jetelytra$applied % LOG_INTERVAL == 0) {
-            // Log the position either side of this tick as well: the velocity being written proves the
-            // mixin runs, the position delta proves the physics actually consumed it. Both sides print
-            // here, so a flight shows whether the client is applying it too.
-            LOGGER.info("[JetElytra] mixin: jet={} applied={} blocks/tick to {} (server side={}) pos={} look={}",
-                    String.format("%.3f", jetSpeed), String.format("%.3f", speed),
-                    self.getScoreboardName(), !self.level().isClientSide(),
-                    String.format("%.2f/%.2f/%.2f", self.getX(), self.getY(), self.getZ()),
-                    String.format("%.2f/%.2f/%.2f", look.x, look.y, look.z));
-        }
     }
 
     /**

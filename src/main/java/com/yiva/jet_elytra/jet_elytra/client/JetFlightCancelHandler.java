@@ -1,8 +1,7 @@
 package com.yiva.jet_elytra.jet_elytra.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.logging.LogUtils;
 import com.yiva.jet_elytra.jet_elytra.Jet_Elytra;
+import com.yiva.jet_elytra.jet_elytra.gameplay.JetThrustState;
 import com.yiva.jet_elytra.jet_elytra.network.CancelFlightPacket;
 import com.yiva.jet_elytra.jet_elytra.network.JetNetwork;
 import net.minecraft.client.Minecraft;
@@ -11,7 +10,6 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
 
 /**
  * Turns a fresh sneak press into {@code C2S_CancelFlight}: pressing sneak while gliding gets the player
@@ -30,14 +28,11 @@ import org.slf4j.Logger;
  *   <li>the press is ignored unless the local player is gliding <em>at that instant</em>. This is the
  *       guard that makes "hold sneak, then take off" a no-op: when sneak went down there was no glide,
  *       and by the time the glide starts no new press arrives.</li>
- *   <li>only the sneak binding counts, compared as its key code rather than hard-coded, so a remapped
- *       sneak key still works.</li>
+ *   <li>the configured sneak binding is matched by input type, including mouse and scan-code keys.</li>
  * </ul>
  */
 @Mod.EventBusSubscriber(modid = Jet_Elytra.MODID, value = Dist.CLIENT)
 public final class JetFlightCancelHandler {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     private JetFlightCancelHandler() {
     }
@@ -49,22 +44,42 @@ public final class JetFlightCancelHandler {
         }
 
         final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.level == null) {
+        if (!canCancelFlight(minecraft)) {
             return;
         }
 
-        final InputConstants.Key sneak = minecraft.options.keyShift.getKey();
-        if (event.getKey() != sneak.getValue()) {
+        if (!minecraft.options.keyShift.matches(event.getKey(), event.getScanCode())) {
             return;
         }
 
-        // The guard that matters: no glide, no cancellation. A press made before take-off lands here and
-        // does nothing, which is exactly the intended behaviour.
-        if (!minecraft.player.isFallFlying()) {
+        cancelFlight(minecraft);
+    }
+
+    @SubscribeEvent
+    public static void onMouse(final InputEvent.MouseButton.Post event) {
+        if (event.getAction() != GLFW.GLFW_PRESS) {
             return;
         }
 
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (!canCancelFlight(minecraft) || !minecraft.options.keyShift.matchesMouse(event.getButton())) {
+            return;
+        }
+
+        cancelFlight(minecraft);
+    }
+
+    private static void cancelFlight(final Minecraft minecraft) {
+        // Notify the server, then stop local movement immediately instead of waiting for metadata sync.
         JetNetwork.CHANNEL.sendToServer(new CancelFlightPacket());
-        LOGGER.info("[JetElytra] client: sent C2S_CancelFlight (sneak pressed while gliding)");
+        minecraft.player.stopFallFlying();
+        JetThrustState.clear();
+    }
+
+    private static boolean canCancelFlight(final Minecraft minecraft) {
+        return minecraft.player != null && minecraft.level != null
+                && minecraft.screen == null && minecraft.getOverlay() == null
+                && minecraft.isWindowActive() && minecraft.player.isFallFlying()
+                && minecraft.options.keyShift.isConflictContextAndModifierActive();
     }
 }

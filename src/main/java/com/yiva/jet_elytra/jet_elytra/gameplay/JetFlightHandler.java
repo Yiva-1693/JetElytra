@@ -34,8 +34,6 @@ import net.minecraftforge.network.PacketDistributor;
 @Mod.EventBusSubscriber(modid = Jet_Elytra.MODID)
 public final class JetFlightHandler {
 
-    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
-
     private JetFlightHandler() {
     }
 
@@ -52,21 +50,11 @@ public final class JetFlightHandler {
         // Read the key state directly instead of trusting a flag written on an earlier tick: this is
         // what makes "hold W, then start gliding" enter thrust immediately.
         final boolean keyHeld = fuel.isLifting();
-        final double beforeX = player.getX();
-        final double beforeY = player.getY();
-        final double beforeZ = player.getZ();
 
         final JetThrust.Race race = JetThrust.tick(fuel, gliding, keyHeld,
                 player.getDeltaMovement().length(), gameTime);
         if (race.thrusting()) {
             spawnTrail(player);
-            // Throttled server-side trace: the thrust decision plus the position it produced.
-            if (gameTime % 20L == 0L) {
-                LOGGER.info("[JetElytra] server: thrusting gliding={} key={} fuel={} ramp={} pos={}",
-                        gliding, keyHeld, String.format("%.2f", fuel.getFuel()),
-                        String.format("%.3f", race.rampSpeed()),
-                        String.format("%.2f/%.2f/%.2f", player.getX(), player.getY(), player.getZ()));
-            }
         } else {
             // Thrust is not running. The model has already armed the regeneration window one second
             // ahead on the last thrusting tick, so this call only matters for a player who was never
@@ -84,12 +72,6 @@ public final class JetFlightHandler {
         // Without this the client never learns the ramp, and its own elytra maths - which is the one
         // that actually decides where the player goes - keeps overwriting the jet with glide speed.
         syncThrust(player, fuel);
-
-        // Diagnostic trace: one line per tick covering the whole input -> thrust -> velocity chain.
-        final double moved = Math.sqrt(Math.pow(player.getX() - beforeX, 2)
-                + Math.pow(player.getY() - beforeY, 2)
-                + Math.pow(player.getZ() - beforeZ, 2));
-        JetDiagnostics.tick(level.getServer(), player, fuel, gliding, keyHeld, race.thrusting(), moved);
     }
 
     /** Vanilla firework trail particles, server side, so every nearby player sees them. */

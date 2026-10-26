@@ -1,6 +1,5 @@
 package com.yiva.jet_elytra.jet_elytra.client;
 
-import com.mojang.logging.LogUtils;
 import com.yiva.jet_elytra.jet_elytra.Jet_Elytra;
 import com.yiva.jet_elytra.jet_elytra.gameplay.JetThrustState;
 import com.yiva.jet_elytra.jet_elytra.network.JetNetwork;
@@ -10,7 +9,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.slf4j.Logger;
 
 /**
  * Turns the vanilla forward key into {@code C2S_WState}.
@@ -29,8 +27,6 @@ import org.slf4j.Logger;
  */
 @Mod.EventBusSubscriber(modid = Jet_Elytra.MODID, value = Dist.CLIENT)
 public final class JetClientPacketHandler {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     /** Last state we told the server about. */
     private static boolean lastPressed = false;
@@ -72,8 +68,6 @@ public final class JetClientPacketHandler {
             lastPressed = pressed;
             lastGliding = gliding;
             JetNetwork.CHANNEL.sendToServer(new WStatePacket(pressed));
-            LOGGER.info("[JetElytra] client: sent C2S_WState pressed={} gliding={} ({})",
-                    pressed, gliding, glideChanged ? "glide state changed" : "key state changed");
         }
     }
 

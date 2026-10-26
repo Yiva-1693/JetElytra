@@ -1,11 +1,17 @@
 package com.yiva.jet_elytra.jet_elytra.network;
 
 import com.yiva.jet_elytra.jet_elytra.Jet_Elytra;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
-/** Channel definition plus the three packets the design document asks for. */
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
+/** Channel definition and direction-checked packet registration. */
 public final class JetNetwork {
 
     private static final String PROTOCOL_VERSION = "1";
@@ -15,6 +21,8 @@ public final class JetNetwork {
     private static final int ID_FUEL_SYNC = 1;
     private static final int ID_THRUST_SYNC = 2;
     private static final int ID_CANCEL_FLIGHT = 3;
+
+    private static final ClientPacketRateLimiter INPUT_LIMITER = new ClientPacketRateLimiter();
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(Jet_Elytra.MODID, "main"),
@@ -28,31 +36,51 @@ public final class JetNetwork {
     /**
      * Registers every packet. Each message has exactly one handler; the W-state and cancel-flight
      * packets are handled server side (they are only ever sent client to server), and the two sync
-     * packets are handled on whichever side receives them, which is always the owning client.
+     * packets can only be received by the owning client.
      */
     public static void register() {
-        CHANNEL.messageBuilder(WStatePacket.class, ID_W_STATE)
+        CHANNEL.messageBuilder(WStatePacket.class, ID_W_STATE, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(WStatePacket::encode)
                 .decoder(WStatePacket::decode)
-                .consumerMainThread(WStatePacket::handle)
+                .consumerNetworkThread((packet, context) -> {
+                    handleClientPacket(packet, context, WStatePacket::handle);
+                })
                 .add();
 
-        CHANNEL.messageBuilder(CancelFlightPacket.class, ID_CANCEL_FLIGHT)
+        CHANNEL.messageBuilder(CancelFlightPacket.class, ID_CANCEL_FLIGHT, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CancelFlightPacket::encode)
                 .decoder(CancelFlightPacket::decode)
-                .consumerMainThread(CancelFlightPacket::handle)
+                .consumerNetworkThread((packet, context) -> {
+                    handleClientPacket(packet, context, CancelFlightPacket::handle);
+                })
                 .add();
 
-        CHANNEL.messageBuilder(FuelSyncPacket.class, ID_FUEL_SYNC)
+        CHANNEL.messageBuilder(FuelSyncPacket.class, ID_FUEL_SYNC, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FuelSyncPacket::encode)
                 .decoder(FuelSyncPacket::decode)
                 .consumerMainThread(FuelSyncPacket::handle)
                 .add();
 
-        CHANNEL.messageBuilder(ThrustSyncPacket.class, ID_THRUST_SYNC)
+        CHANNEL.messageBuilder(ThrustSyncPacket.class, ID_THRUST_SYNC, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ThrustSyncPacket::encode)
                 .decoder(ThrustSyncPacket::decode)
                 .consumerMainThread(ThrustSyncPacket::handle)
                 .add();
+    }
+
+    /** Apply the shared input budget before any work is queued on the server thread. */
+    private static <T> void handleClientPacket(final T packet, final Supplier<NetworkEvent.Context> supplier,
+                                             final BiConsumer<T, Supplier<NetworkEvent.Context>> handler) {
+        final NetworkEvent.Context context = supplier.get();
+        context.setPacketHandled(true);
+        final var connection = context.getNetworkManager();
+        if (!connection.isConnected()) {
+            return;
+        }
+        if (!INPUT_LIMITER.allow(connection, System.nanoTime())) {
+            connection.disconnect(Component.literal("Too many Jet Elytra input packets"));
+            return;
+        }
+        context.enqueueWork(() -> handler.accept(packet, supplier));
     }
 }
